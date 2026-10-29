@@ -1,0 +1,30 @@
+⚠ Blocked on you · 1 to decide · 1 to do (both block the work) · waiting on 1 · Coupon
+  codes at checkout
+WAITING ON YOU · 75% done · The last 25%: your stacking call, the Stripe key, one green
+  end-to-end run, then merge, deploy and a live check.
+Last checked Tue 27 Oct 16:40, by the sitrep agent (5 min before this sitrep was made):
+  PR #142 state and CI checks on GitHub; staging checkout page loads with the coupon
+  field
+
+YOU DECIDE (1)
+  [Blocks the work, Due Thu 29 Oct] Should a coupon code stack with products that are
+    already on sale?
+    recommend: Don't stack: apply the code only to full-price items. It protects margin
+      on the 6 below-cost products and matches how the last campaign worked.
+    reply (Don't stack (full-price items only)): Coupons should not stack with sale
+      prices: apply the code to full-price items only, show a note on sale items, then
+      finish the PR.
+    other options: Stack, capped at 40% total · Stack with no cap
+
+YOU DO (1)
+  [Blocks the work] Add the Stripe test secret key to the staging environment as
+    STRIPE_SECRET_KEY.
+    recommend: Create a restricted test key with only Coupons and PaymentIntents write
+      access, so staging cannot touch live data.
+    copy: Stripe dashboard: API keys (test mode): https://dashboard.stripe.com/test/apikeys
+    copy: Set it on staging: vercel env add STRIPE_SECRET_KEY preview
+    reply (Done, key added): I added the new Stripe test key to staging as
+      STRIPE_SECRET_KEY. Re-run the end-to-end checkout test.
+
+WAITING ON (1)
+  [Optional] Maya (design) is checking the coupon field's mobile layout.

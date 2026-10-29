@@ -1,0 +1,125 @@
+{
+  "lang": "en",
+  "title": "Coupon codes at checkout",
+  "one_liner": "You asked for a coupon-code field at checkout so the Black Friday campaign can hand out 15%-off codes.",
+  "status": "waiting-on-you",
+  "status_line": "Almost done: the coupon field works and PR #142 passed review, but it needs your call on stacking and a Stripe key before it can merge.",
+  "last_checked": {"when": "Tue 27 Oct 16:40", "by": "the explainer", "what": "PR #142 state and CI checks on GitHub; staging checkout page loads with the coupon field", "stale": null},
+  "asked_last": {"date": "Tue 27 Oct 16:21", "quote": "So can we ship this before Friday?", "answer": "Yes, if you answer the stacking question and add the Stripe test key today; merge and deploy take about 30 minutes after that."},
+  "for_you": [
+    {
+      "id": "stacking",
+      "kind": "decision",
+      "blocks": true,
+      "what": "Should a coupon code stack with products that are already on sale?",
+      "why": "Black Friday puts 40 products on sale. If codes stack, a 15% code on a 30%-off item gives 45% off, below cost on 6 of them. The code path for each answer is written; only the rule is missing.",
+      "recommend": "Don't stack: apply the code only to full-price items. It protects margin on the 6 below-cost products and matches how the last campaign worked.",
+      "due": "Thu 29 Oct",
+      "options": [
+        {"label": "Don't stack (full-price items only)", "reply": "Coupons should not stack with sale prices: apply the code to full-price items only, show a note on sale items, then finish the PR.", "recommended": true, "risky": false},
+        {"label": "Stack, capped at 40% total", "reply": "Let coupons stack with sale prices but cap the combined discount at 40%, then finish the PR.", "recommended": false, "risky": false},
+        {"label": "Stack with no cap", "reply": "Let coupons stack with sale prices with no cap, then finish the PR.", "recommended": false, "risky": false}
+      ],
+      "copy": [],
+      "then": "I wire the chosen rule into the cart total, add two tests for it and push to PR #142; about 20 minutes."
+    },
+    {
+      "id": "stripe-key",
+      "kind": "you-fix",
+      "blocks": true,
+      "what": "Add the Stripe test secret key to the staging environment as STRIPE_SECRET_KEY.",
+      "why": "Staging still uses an expired key, so the end-to-end checkout test fails at payment. Only you have access to the Stripe dashboard.",
+      "recommend": "Create a restricted test key with only Coupons and PaymentIntents write access, so staging cannot touch live data.",
+      "due": null,
+      "options": [
+        {"label": "Done, key added", "reply": "I added the new Stripe test key to staging as STRIPE_SECRET_KEY. Re-run the end-to-end checkout test.", "recommended": true, "risky": false}
+      ],
+      "copy": [
+        {"label": "Stripe dashboard: API keys (test mode)", "text": "https://dashboard.stripe.com/test/apikeys"},
+        {"label": "Set it on staging", "text": "vercel env add STRIPE_SECRET_KEY preview"}
+      ],
+      "then": "I re-run the end-to-end checkout test on staging; about 5 minutes."
+    },
+    {
+      "id": "design-ok",
+      "kind": "external",
+      "blocks": false,
+      "what": "Maya (design) is checking the coupon field's mobile layout.",
+      "why": "She asked to see it before it ships; the message went out Mon 26 Oct with a staging link.",
+      "recommend": null,
+      "due": null,
+      "options": [],
+      "copy": [],
+      "then": "If she asks for changes I apply them before merge; otherwise nothing."
+    }
+  ],
+  "continue": {"text": "Finish PR #142 and get it ready to merge.", "alts": ["Show me the coupon field on staging.", "Explain how the discount is calculated."]},
+  "if_waiting": "Without both answers by Thursday the code misses the Friday campaign and the codes go out with nowhere to enter them.",
+  "progress": {"done_pct": 75, "basis": "The feature is built, tested and reviewed; the stacking rule, a passing end-to-end test and the deploy are still left.", "confidence": "high", "gap": "The last 25%: your stacking call, the Stripe key, one green end-to-end run, then merge, deploy and a live check."},
+  "track": {
+    "kind": "code",
+    "stages": [
+      {"name": "Understand", "status": "done"},
+      {"name": "Plan", "status": "done"},
+      {"name": "Build", "status": "done"},
+      {"name": "Tests", "status": "blocked", "note": "end-to-end test needs the Stripe key"},
+      {"name": "Review", "status": "done", "note": "reviewer agent, 2 fixes applied"},
+      {"name": "PR", "status": "done"},
+      {"name": "Merged", "status": "todo"},
+      {"name": "Deployed", "status": "todo"},
+      {"name": "Verified live", "status": "todo"}
+    ]
+  },
+  "deploy": {"applies": true, "summary": "Three steps from live: merge PR #142, deploy to production, check one real checkout.", "steps_left": ["Merge", "Deploy", "Verify live"]},
+  "workstreams": [],
+  "story": {
+    "origin": {"date": "Fri 23 Oct, 11:02", "quote": "Marketing wants to send 15% off codes for Black Friday. Add a coupon field to checkout that validates codes against Stripe and shows the discount before payment.", "full": null},
+    "paragraphs": [
+      {"lead": "What this is.", "text": "A coupon-code box on the checkout page of the Acme shop. Shoppers type a code, the shop checks it with Stripe (the payment provider), and the new total shows before they pay."},
+      {"lead": "Why it was needed.", "text": "Marketing is emailing 15%-off codes for Black Friday on Fri 30 Oct. Until now the shop had no place to enter a code, so the campaign could not run."},
+      {"lead": "How it went.", "text": "The field, the Stripe check and the cart math were built on Fri 23 Oct and Sat 24 Oct. A review on Tue 27 Oct found that expired codes showed a blank error and that totals could round one cent wrong; both are fixed. Testing stopped at payment because staging's Stripe key has expired."},
+      {"lead": "What changed from your ask.", "text": "You added a limit of one code per order on Mon 26 Oct. Whether codes stack with sale prices never came up until the review, so that is still open."}
+    ],
+    "more": [
+      {"lead": "How the discount is computed.", "text": "The discount is applied per line item in cents and rounded down, so the total never shows a fraction of a cent. The cart recomputes on every quantity change, and the code is re-checked with Stripe right before payment in case it expired mid-session."}
+    ]
+  },
+  "timeline": [
+    {"date": "2026-10-23 11:02", "label": "Asked for a coupon field at checkout", "kind": "start"},
+    {"date": "2026-10-23 17:30", "label": "Field and Stripe validation working locally", "kind": "milestone"},
+    {"date": "2026-10-24 15:10", "label": "Cart math and unit tests done (31 tests)", "kind": "milestone"},
+    {"date": "2026-10-26 10:05", "label": "You set a limit of one code per order", "kind": "decision"},
+    {"date": "2026-10-26 18:10", "label": "PR #142 opened", "kind": "ship"},
+    {"date": "2026-10-27 15:55", "label": "Review found blank error and 1-cent rounding bug; both fixed", "kind": "problem"},
+    {"date": "2026-10-27 16:30", "label": "End-to-end test blocked on expired Stripe key", "kind": "problem"}
+  ],
+  "decisions": [
+    {"date": "Fri 23 Oct 11:40", "by": "you", "rec": true, "what": "Validate codes live against Stripe instead of keeping our own coupon table."},
+    {"date": "Mon 26 Oct 10:05", "by": "you", "rec": null, "what": "Allow only one coupon code per order."},
+    {"date": "Tue 27 Oct 16:02", "by": "agent", "rec": null, "what": "Round each line's discount down to the cent, so the shop never gives away more than the code promises."}
+  ],
+  "done": [
+    {"outcome": "Shoppers can enter a coupon code at checkout and see the discounted total before paying.", "before": "Checkout had no coupon field; codes could not be used at all.", "check": [{"label": "PR #142", "url": "https://github.com/acme/acme-shop/pull/142"}, {"label": "Staging checkout", "url": "https://staging.acme-shop.example/checkout"}]},
+    {"outcome": "Expired or unknown codes now show a clear message (\"This code has expired\") instead of a blank red box.", "before": "Any invalid code showed an empty error.", "check": [{"label": "Review report", "path": "/home/dev/code/acme-shop/claude-artifacts/2026-10-27-coupon-review.md"}]},
+    {"outcome": "31 unit tests cover the discount math, including the one-code limit and rounding.", "before": null, "check": [{"label": "CI run on PR #142", "url": "https://github.com/acme/acme-shop/pull/142/checks"}]}
+  ],
+  "remaining": [
+    {"what": "Apply the stacking rule you choose to the cart total, with tests", "required": true, "owner": "agent", "who": null, "effort": "about 20 minutes", "note": "waits on your decision", "for_you": "stacking"},
+    {"what": "Add the Stripe test key to staging", "required": true, "owner": "you", "who": null, "effort": "a few minutes", "note": null, "for_you": "stripe-key"},
+    {"what": "Run the end-to-end checkout test on staging", "required": true, "owner": "agent", "who": null, "effort": "a few minutes", "note": null, "for_you": null},
+    {"what": "Merge, deploy and check one real checkout with a code", "required": true, "owner": "agent", "who": null, "effort": "about 30 minutes", "note": "you merge; the agent opens PRs only", "for_you": null},
+    {"what": "Mobile layout sign-off from design", "required": false, "owner": "external", "who": "Maya", "effort": null, "note": null, "for_you": "design-ok"}
+  ],
+  "next_agent": ["Wire the stacking rule once you pick one", "Re-run the end-to-end test after the Stripe key lands", "Mark PR #142 ready for review"],
+  "caveats": [
+    {"text": "Stripe codes created by marketing must have the same names as in the email, including case.", "matters": "The check is case-sensitive; a mismatch means every shopper sees 'unknown code' on launch day."}
+  ],
+  "since_last": null,
+  "terms": [
+    {"term": "Stripe", "meaning": "the payment provider; it also stores the coupon codes"},
+    {"term": "stacking", "meaning": "a coupon applying on top of a sale price"},
+    {"term": "end-to-end test", "meaning": "an automated run through the real checkout on staging, up to payment"}
+  ],
+  "unverified": ["Maya has not replied yet; whether she will ask for layout changes is unknown."],
+  "links": [{"label": "PR #142", "url": "https://github.com/acme/acme-shop/pull/142"}, {"label": "Staging checkout", "url": "https://staging.acme-shop.example/checkout"}]
+}
